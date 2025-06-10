@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze KAIRUL DAN SZEIRENG by luxancrit</title>
+    <title>by luxancrit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;↑
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;%
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;<
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .maze-container {
+            position: relative;
+            margin: 0 auto 20px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .maze {
+            display: grid;
+            background: #222;
+            gap: 1px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+        }
+
+        .wall {
+            background: #333;
+        }
+
+        .path {
+            background: #f0f0f0;
+        }
+
+        .player {
+            background: #FFFFFF;
+            border-radius: 0,7%;
+            position: relative;
+            animation: glow 1s infinite;
+        }
+
+        .player::after {
+            content: url('https://files.catbox.moe/ybfjbr.png');
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            font-size: 0.7em;
+        }
+
+        .goal {
+            background: #FF1493;
+            border-radius: 5%;
+            position: relative;
+            animation: glow 2s infinite;
+        }
+
+        .goal::after {
+            content: url('https://files.catbox.moe/w6teod.png');
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7em;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 200px;
+            margin: 0 auto 20px;
+        }
+
+        .control-btn {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 1.5em;
+            height: 60px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .control-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .control-btn:nth-child(2) {
+            grid-column: 1;
+            grid-column: 3,3;
+        }
+
+        .control-btn:nth-child(3) {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .control-btn:nth-child(4) {
+            grid-column: 3;
+            grid-row: 2,1;
+        }
+
+        .control-btn:nth-child(4) {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .game-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #FF6B6B, #4ECDC4);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: bold;
+            animation: slideIn 0.5s ease;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #FF6B6B; }
+            100% { box-shadow: 0 0 20px #FF6B6B, 0 0 30px #FF6B6B; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 480px) {
+            .game-title {
+                font-size: 1.5em;
+            }
+            
+            .game-container {
+                padding: 15px;
+            }
+            
+            .control-btn {
+                height: 50px;
+                font-size: 1.2em;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🎮 JODOHKAN KAIRUL DAN SZEIRENG🥰</h1>
+           <h1 class="game-title"> atau kmu dihantui BAXIA M5😹
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value" id="level">1</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Moves</div>
+                    <div class="stat-value" id="moves">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Time</div>
+                    <div class="stat-value" id="time">0s</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="maze-container">
+            <div class="maze" id="maze"></div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="right">→</button>
+            <button class="control-btn" id="left">←</button>
+            <button class="control-btn" id="down">↓</button>
+            <button class="control-btn" id="up">↑</button>
+        </div>
+
+        <div class="game-buttons">
+            <button class="btn" id="newGame">New Game</button>
+            <button class="btn" id="resetLevel">Reset Level</button>
+            <button class="btn" id="nextLevel">Next Level</button>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        class MazeGame {
+            constructor() {
+                this.level = 1;
+                this.moves = 0;
+                this.startTime = null;
+                this.timer = null;
+                this.playerPos = { x: 1, y: 1 };
+                this.goalPos = { x: 0, y: 0 };
+                this.currentMaze = [];
+                this.gameActive = false;
+
+                this.mazeTemplates = {
+                    1: { // Easy 8x8
+                        size: 8,
+                        maze: [
+                            [1,1,1,1,1,1,1,1],
+                            [1,0,0,0,1,0,0,1],
+                            [1,0,1,0,1,0,1,1],
+                            [1,0,1,0,0,0,0,1],
+                            [1,0,1,1,1,1,0,1],
+                            [1,0,0,0,0,0,0,1],
+                            [1,1,1,1,1,1,0,1],
+                            [1,1,1,1,1,1,1,1]
+                        ]
+                    },
+                    2: { // Medium 10x10
+                        size: 10,
+                        maze: [
+                            [1,1,1,1,1,1,1,1,1,1],
+                            [1,0,0,0,0,0,0,0,0,1],
+                            [1,0,1,1,1,1,1,1,0,1],
+                            [1,0,1,0,0,0,0,1,0,1],
+                            [1,0,1,0,1,1,0,1,0,1],
+                            [1,0,0,0,1,0,0,0,0,1],
+                            [1,1,1,0,1,0,1,1,1,1],
+                            [1,0,0,0,0,0,0,0,0,1],
+                            [1,0,1,1,1,1,1,1,0,1],
+                            [1,1,1,1,1,1,1,1,1,1]
+                        ]
+                    },
+                    3: { // Hard 12x12
+                        size: 12,
+                        maze: [
+                            [1,1,1,1,1,1,1,1,1,1,1,1],
+                            [1,0,0,0,0,0,0,0,0,0,0,1],
+                            [1,0,1,1,1,0,1,1,1,1,0,1],
+                            [1,0,1,0,0,0,0,0,0,1,0,1],
+                            [1,0,1,0,1,1,1,1,0,1,0,1],
+                            [1,0,0,0,1,0,0,0,0,0,0,1],
+                            [1,1,1,0,1,0,1,1,1,1,0,1],
+                            [1,0,0,0,0,0,0,0,0,1,0,1],
+                            [1,0,1,1,1,1,1,1,0,1,0,1],
+                            [1,0,0,0,0,0,0,0,0,0,0,1],
+                            [1,1,1,1,1,1,1,1,1,1,0,1],
+                            [1,1,1,1,1,1,1,1,1,1,1,1]
+                        ]
+                    }
+                };
+
+                this.initializeGame();
+                this.setupEventListeners();
+            }
+
+            initializeGame() {
+                this.loadLevel(this.level);
+                this.updateDisplay();
+            }
+
+            loadLevel(level) {
+                const template = this.mazeTemplates[level] || this.mazeTemplates[1];
+                this.currentMaze = template.maze.map(row => [...row]);
+                
+                this.playerPos = { x: 1, y: 1 };
+                
+                
+                const size = template.size;
+                this.goalPos = { x: size - 2, y: size - 2 };
+                
+                this.moves = 0;
+                this.gameActive = true;
+                this.startTime = Date.now();
+                this.startTimer();
+                
+                this.renderMaze();
+                this.updateDisplay();
+                this.showMessage(`Jodohkan Atau Kamu Ditumpuk Baxia M5`, 'info');
+            }
+
+            renderMaze() {
+                const mazeElement = document.getElementById('maze');
+                const size = this.currentMaze.length;
+               
+                mazeElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+                
+                const containerWidth = Math.min(400, window.innerWidth - 80);
+                const cellSize = Math.floor(containerWidth / size);
+                mazeElement.style.width = `${cellSize * size}px`;
+                mazeElement.style.height = `${cellSize * size}px`;
+                
+                mazeElement.innerHTML = '';
+                
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.style.width = `${cellSize}px`;
+                        cell.style.height = `${cellSize}px`;
+                        
+                        if (this.currentMaze[y][x] === 1) {
+                            cell.classList.add('wall');
+                        } else {
+                            cell.classList.add('path');
+                        }
+                        
+                        if (x === this.playerPos.x && y === this.playerPos.y) {
+                            cell.classList.add('player');
+                        }
+                        
+                        if (x === this.goalPos.x && y === this.goalPos.y) {
+                            cell.classList.add('goal');
+                        }
+                        
+                        mazeElement.appendChild(cell);
+                    }
+                }
+            }
+
+            movePlayer(dx, dy) {
+                if (!this.gameActive) return;
+                
+                const newX = this.playerPos.x + dx;
+                const newY = this.playerPos.y + dy;
+                
+                if (newX >= 0 && newX < this.currentMaze[0].length && 
+                    newY >= 0 && newY < this.currentMaze.length && 
+                    this.currentMaze[newY][newX] === 0) {
+                    
+                    this.playerPos.x = newX;
+                    this.playerPos.y = newY;
+                    this.moves++;
+                    
+                    this.renderMaze();
+                    this.updateDisplay();
+                    
+                    if (this.playerPos.x === this.goalPos.x && this.playerPos.y === this.goalPos.y) {
+                        this.levelComplete();
+                    }
+                }
+            }
+
+            levelComplete() {
+                this.gameActive = false;
+                this.stopTimer();
+                
+                const timeElapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                this.showMessage(`Mantap Sekarang Mereka Jodoh🥰 <br>Complete! Time: ${timeElapsed}s, Moves: ${this.moves}`, 'success');
+                
+                if (this.level < 3) {
+                    document.getElementById('nextLevel').style.display = 'inline-block';
+                }
+            }
+
+            nextLevel() {
+                if (this.level < 3) {
+                    this.level++;
+                    this.loadLevel(this.level);
+                    document.getElementById('nextLevel').style.display = 'none';
+                } else {
+                    this.showMessage('🏆 Congratulations! Kmu Selamat Dari Tumpukkan Baxia M5', 'success');
+                }
+            }
+
+            resetLevel() {
+                this.stopTimer();
+                this.loadLevel(this.level);
+                document.getElementById('nextLevel').style.display = 'none';
+            }
+
+            newGame() {
+                this.stopTimer();
+                this.level = 1;
+                this.loadLevel(this.level);
+                document.getElementById('nextLevel').style.display = 'none';
+            }
+
+            startTimer() {
+                this.timer = setInterval(() => {
+                    if (this.gameActive) {
+                        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                        document.getElementById('time').textContent = `${elapsed}s`;
+                    }
+                }, 1000);
+            }
+
+            stopTimer() {
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+            }
+
+            updateDisplay() {
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('moves').textContent = this.moves;
+            }
+
+            showMessage(text, type = 'info') {
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = text;
+                messageElement.className = `message ${type}`;
+                
+                setTimeout(() => {
+                    messageElement.textContent = '';
+                    messageElement.className = '';
+                }, 3000);
+            }
+
+            setupEventListeners() { 
+                document.getElementById('up').addEventListener('click', () => this.movePlayer(0, -1));
+                document.getElementById('down').addEventListener('click', () => this.movePlayer(0, 1));
+                document.getElementById('left').addEventListener('click', () => this.movePlayer(-1, 0));
+                document.getElementById('right').addEventListener('click', () => this.movePlayer(1, 0));
+                
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowUp':
+                        case 'w':
+                        case 'W':
+                            e.preventDefault();
+                            this.movePlayer(0, -1);
+                            break;
+                        case 'ArrowDown':
+                        case 's':
+                        case 'S':
+                            e.preventDefault();
+                            this.movePlayer(0, 1);
+                            break;
+                        case 'ArrowLeft':
+                        case 'a':
+                        case 'A':
+                            e.preventDefault();
+                            this.movePlayer(-1, 0);
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                        case 'D':
+                            e.preventDefault();
+                            this.movePlayer(1, 0);
+                            break;
+                    }
+                });
+                
+                document.getElementById('newGame').addEventListener('click', () => this.newGame());
+                document.getElementById('resetLevel').addEventListener('click', () => this.resetLevel());
+                document.getElementById('nextLevel').addEventListener('click', () => this.nextLevel());
+                
+                let touchStartX = 0;
+                let touchStartY = 0;
+                
+                document.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                });
+                
+                document.addEventListener('touchend', (e) => {
+                    if (!touchStartX || !touchStartY) return;
+                    
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const touchEndY = e.changedTouches[0].clientY;
+                    
+                    const diffX = touchStartX - touchEndX;
+                    const diffY = touchStartY - touchEndY;
+                    
+                    if (Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 30) {
+                            this.movePlayer(-1, 0); 
+                        } else if (diffX < -30) {
+                            this.movePlayer(1, 0); 
+                        }
+                    } else {
+                        if (diffY > 30) {
+                            this.movePlayer(0, -1); 
+                        } else if (diffY < -30) {
+                            this.movePlayer(0, 1); 
+                        }
+                    }
+                    
+                    touchStartX = 0;
+                    touchStartY = 0;
+                });
+            }
+        }
+
+        document.getElementById('nextLevel').style.display = 'none';
+
+        window.addEventListener('load', () => {
+            new MazeGame();
+        });
+    </script>
+</body>
+</html>
